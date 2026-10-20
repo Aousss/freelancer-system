@@ -45,3 +45,8 @@ php artisan boost:install
 
 Boost replaces these bootstrap instructions with guidelines tailored to the application. After installation, read `AGENTS.md` again and continue with the user's original request using the generated guidelines.
 </laravel-boost-guidelines>
+
+# User Preferences
+
+## Commits
+After completing any task or set of changes, always create a git commit with an appropriate commit message summarizing what was done.

@@ -3,46 +3,70 @@
 namespace App\Livewire\Settings;
 
 use App\Models\Setting;
+use App\Models\User;
 use App\Services\InvoiceAggregatorService;
 use Livewire\Attributes\Layout;
+use Livewire\Attributes\Url;
 use Livewire\Component;
 
 #[Layout('components.layouts.app')]
 class SettingsManager extends Component
 {
+    #[Url(as: 'tab')]
     public string $activeTab = 'currency'; // 'currency', 'invoicing', 'profile', 'banking'
+
     public string $successMessage = '';
 
     // Currency & Financials
     public string $currency = 'MYR';
+
     public string $currencySymbol = 'RM';
+
     public string $currencyPosition = 'prefix'; // 'prefix', 'suffix'
+
     public float $defaultTaxRate = 0.00;
+
     public float $defaultHourlyRate = 150.00;
 
     // Invoicing & Numbering
     public string $invoicePrefix = 'INV-';
+
     public int $invoiceDueDays = 14;
+
     public string $invoiceNotesTemplate = "Payment due within 14 days of issue date.\nPlease remit payment to the bank account specified.";
+
     public string $nextCalculatedInvoiceNumber = '';
 
     // Business Profile
     public string $freelancerName = 'Alex Rivers';
+
     public string $businessName = 'Alex Rivers Studio';
+
     public string $businessSubtitle = 'Software Engineering & Consulting';
+
     public string $businessEmail = 'alex@rivers.dev';
+
     public string $businessPhone = '+60 12-345 6789';
+
     public string $businessRegistration = 'SSM: 202601002345 (003145678-X)';
+
     public string $businessAddress = "Level 28, Menara Ilham\nNo. 8, Jalan Binjai\n50450 Kuala Lumpur, Malaysia";
 
     // Bank Account & Remittance
     public string $bankName = 'Maybank (Malayan Banking Berhad)';
+
     public string $bankAccountName = 'Alex Rivers';
+
     public string $bankAccountNumber = '5140 1234 5678';
+
     public string $bankSwiftDuitnow = 'DuitNow ID: 900101-14-5555 / MBBEMYKL';
 
     public function mount(InvoiceAggregatorService $aggregator): void
     {
+        if (request()->routeIs('profile')) {
+            $this->activeTab = 'profile';
+        }
+
         $this->currency = Setting::get('currency', 'MYR');
         $this->currencySymbol = Setting::get('currency_symbol', 'RM');
         $this->currencyPosition = Setting::get('currency_position', 'prefix');
@@ -107,6 +131,11 @@ class SettingsManager extends Component
         Setting::set('business_phone', trim($this->businessPhone), 'profile');
         Setting::set('business_registration', trim($this->businessRegistration), 'profile');
         Setting::set('business_address', $this->businessAddress, 'profile');
+
+        User::query()->first()?->update([
+            'name' => trim($this->freelancerName),
+            'email' => trim($this->businessEmail),
+        ]);
 
         Setting::set('bank_name', trim($this->bankName), 'banking');
         Setting::set('bank_account_name', trim($this->bankAccountName), 'banking');

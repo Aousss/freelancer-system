@@ -8,13 +8,14 @@ use App\Services\RateResolverService;
 use App\Services\TimeParserService;
 use App\Services\TimerStateService;
 use Illuminate\Support\Facades\Auth;
-use Livewire\Attributes\On;
 use Livewire\Component;
 
 class CommandPalette extends Component
 {
     public bool $isOpen = false;
+
     public string $query = '';
+
     public string $feedbackMessage = '';
 
     public function open(): void
@@ -64,13 +65,14 @@ class CommandPalette extends Component
                 ]);
             }
             $this->close();
+
             return;
         }
 
         // 1b. pause
         if ($command === 'pause') {
             $active = $timerService->getActiveTimer($userId);
-            if ($active && !$active->is_paused) {
+            if ($active && ! $active->is_paused) {
                 $timerService->pauseTimer($active);
                 $this->dispatch('timer-refresh');
                 $this->dispatch('timesheet-updated');
@@ -87,6 +89,7 @@ class CommandPalette extends Component
                 ]);
             }
             $this->close();
+
             return;
         }
 
@@ -110,11 +113,12 @@ class CommandPalette extends Component
                 ]);
             }
             $this->close();
+
             return;
         }
 
         // 2. goto {dashboard|timesheet|projects|invoices|settings}
-        if ($command === 'goto' && !empty($parts[1])) {
+        if ($command === 'goto' && ! empty($parts[1])) {
             $destination = strtolower($parts[1]);
             $this->close();
 
@@ -122,14 +126,16 @@ class CommandPalette extends Component
                 'timesheet', 'time' => $this->redirect('/timesheet', navigate: true),
                 'projects', 'proj' => $this->redirect('/projects', navigate: true),
                 'invoices', 'inv' => $this->redirect('/invoices', navigate: true),
+                'profile', 'me' => $this->redirect('/profile', navigate: true),
                 'settings', 'pref', 'config', 'currency' => $this->redirect('/settings', navigate: true),
                 default => $this->redirect('/', navigate: true),
             };
+
             return;
         }
 
         // 3. start {project_slug} {description}
-        if ($command === 'start' && !empty($parts[1])) {
+        if ($command === 'start' && ! empty($parts[1])) {
             $slug = $parts[1];
             $desc = $parts[2] ?? 'Work logged via Command Palette';
 
@@ -152,6 +158,7 @@ class CommandPalette extends Component
                     'description' => "Tracking on {$project->name}",
                 ]);
                 $this->close();
+
                 return;
             } else {
                 $this->feedbackMessage = "Project '{$slug}' not found.";
@@ -160,12 +167,13 @@ class CommandPalette extends Component
                     'message' => 'Project Not Found',
                     'description' => "Could not locate project matching '{$slug}'.",
                 ]);
+
                 return;
             }
         }
 
         // 4. log {duration} {project_slug} {description}
-        if ($command === 'log' && !empty($parts[1])) {
+        if ($command === 'log' && ! empty($parts[1])) {
             $durationStr = $parts[1];
             $remainder = $parts[2] ?? '';
             $subParts = preg_split('/\s+/', $remainder, 2);
@@ -180,6 +188,7 @@ class CommandPalette extends Component
                     'message' => 'Invalid Duration',
                     'description' => "Could not parse '{$durationStr}'.",
                 ]);
+
                 return;
             }
 
@@ -187,7 +196,7 @@ class CommandPalette extends Component
                 ->orWhere('name', 'LIKE', "%{$slug}%")
                 ->first();
 
-            if (!$project) {
+            if (! $project) {
                 $project = Project::first();
             }
 
@@ -215,6 +224,7 @@ class CommandPalette extends Component
                     'description' => "Logged {$durationStr} to {$project->name}.",
                 ]);
                 $this->close();
+
                 return;
             }
         }

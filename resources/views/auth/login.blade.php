@@ -100,10 +100,15 @@
                     body: JSON.stringify({ id_token: idToken }),
                 });
 
-                const data = await res.json();
+                let data = {};
+                try {
+                    data = await res.json();
+                } catch {
+                    // response was not json
+                }
 
                 if (!res.ok) {
-                    throw new Error(data.error ?? 'Authentication failed.');
+                    throw new Error(data.error ?? data.message ?? 'Authentication failed.');
                 }
 
                 window.location.href = data.redirect;
