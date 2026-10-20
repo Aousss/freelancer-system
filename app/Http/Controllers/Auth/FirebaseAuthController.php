@@ -72,30 +72,41 @@ class FirebaseAuthController extends Controller
         $firebaseUid = $firebaseUser['localId'];
         $email = $firebaseUser['email'] ?? null;
 
-        // Find existing user by firebase_uid or matching email
-        $user = User::where('firebase_uid', $firebaseUid)
-            ->when($email, fn ($query) => $query->orWhere('email', $email))
-            ->first();
+        try {
+            // Find existing user by firebase_uid or matching email
+            $user = User::where('firebase_uid', $firebaseUid)
+                ->when($email, fn ($query) => $query->orWhere('email', $email))
+                ->first();
 
-        if ($user) {
-            $user->update([
-                'firebase_uid' => $firebaseUid,
-                'name' => $firebaseUser['displayName'] ?? $user->name,
-                'email' => $email ?? $user->email,
-                'avatar' => $firebaseUser['photoUrl'] ?? $user->avatar,
-                'email_verified_at' => $user->email_verified_at ?? now(),
-            ]);
-        } else {
-            $user = User::create([
-                'firebase_uid' => $firebaseUid,
-                'name' => $firebaseUser['displayName'] ?? 'Unknown',
-                'email' => $email,
-                'avatar' => $firebaseUser['photoUrl'] ?? null,
-                'email_verified_at' => now(),
-            ]);
+            if ($user) {
+                $user->update([
+                    'firebase_uid' => $firebaseUid,
+                    'name' => $firebaseUser['displayName'] ?? $user->name,
+                    'email' => $email ?? $user->email,
+                    'avatar' => $firebaseUser['photoUrl'] ?? $user->avatar,
+                    'email_verified_at' => $user->email_verified_at ?? now(),
+                ]);
+            } else {
+                $user = User::create([
+                    'firebase_uid' => $firebaseUid,
+                    'name' => $firebaseUser['displayName'] ?? 'Unknown',
+                    'email' => $email,
+                    'avatar' => $firebaseUser['photoUrl'] ?? null,
+                    'email_verified_at' => now(),
+                ]);
+            }
+
+            Auth::login($user, remember: true);
+        } catch (\Throwable $e) {
+            Log::error('User persistence or login failed: '.$e->getMessage(), ['exception' => $e]);
+
+            $message = 'Database error: unable to save user or start session. Please make sure your database is configured and migrations have run.';
+            if (config('app.debug')) {
+                $message .= ' ('.$e->getMessage().')';
+            }
+
+            return response()->json(['error' => $message], 500);
         }
-
-        Auth::login($user, remember: true);
 
         return response()->json(['redirect' => route('dashboard')]);
     }
