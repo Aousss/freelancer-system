@@ -73,15 +73,37 @@
             appId:             "{{ config('services.firebase.app_id') }}",
         };
 
-        const app      = initializeApp(firebaseConfig);
-        const auth     = getAuth(app);
-        const provider = new GoogleAuthProvider();
-
         const btn     = document.getElementById('google-signin-btn');
         const btnText = document.getElementById('btn-text');
         const errBox  = document.getElementById('error-msg');
 
+        let app = null;
+        let auth = null;
+        let provider = null;
+
+        if (!firebaseConfig.apiKey) {
+            console.error('Firebase configuration is missing. Please set FIREBASE_* environment variables.');
+            errBox.textContent = 'Firebase configuration is missing on the server. Please check your environment variables in Laravel Cloud.';
+            errBox.classList.remove('hidden');
+        } else {
+            try {
+                app      = initializeApp(firebaseConfig);
+                auth     = getAuth(app);
+                provider = new GoogleAuthProvider();
+            } catch (initErr) {
+                console.error('Firebase initialization error:', initErr);
+                errBox.textContent = 'Failed to initialize Firebase: ' + initErr.message;
+                errBox.classList.remove('hidden');
+            }
+        }
+
         btn.addEventListener('click', async () => {
+            if (!auth || !provider) {
+                errBox.textContent = 'Firebase configuration is missing on the server. Please set the FIREBASE_* variables in Laravel Cloud.';
+                errBox.classList.remove('hidden');
+                return;
+            }
+
             btn.disabled = true;
             btnText.textContent = 'Signing in…';
             errBox.classList.add('hidden');
@@ -114,7 +136,18 @@
                 window.location.href = data.redirect;
 
             } catch (err) {
-                errBox.textContent = err.message;
+                console.error('Sign-in error:', err);
+                let message = err.message;
+
+                if (err.code === 'auth/unauthorized-domain') {
+                    message = 'This domain is not authorized in Firebase Console. Please add your Laravel Cloud domain under Firebase Authentication > Settings > Authorized domains.';
+                } else if (err.code === 'auth/popup-blocked') {
+                    message = 'Sign-in popup was blocked by your browser. Please allow popups for this site.';
+                } else if (err.code === 'auth/popup-closed-by-user') {
+                    message = 'Sign-in popup was closed before completing.';
+                }
+
+                errBox.textContent = message;
                 errBox.classList.remove('hidden');
                 btn.disabled = false;
                 btnText.textContent = 'Continue with Google';
