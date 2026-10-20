@@ -111,6 +111,16 @@
                 </a>
 
                 <a
+                    href="/profile"
+                    class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl transition-all {{ request()->is('profile*') ? 'bg-violet-600/10 text-violet-300 border border-violet-500/20 font-semibold' : 'text-zinc-400 hover:text-zinc-100 hover:bg-white/[0.03]' }}"
+                >
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                    </svg>
+                    <span>Profile</span>
+                </a>
+
+                <a
                     href="/settings"
                     class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl transition-all {{ request()->is('settings*') ? 'bg-violet-600/10 text-violet-300 border border-violet-500/20 font-semibold' : 'text-zinc-400 hover:text-zinc-100 hover:bg-white/[0.03]' }}"
                 >
@@ -124,14 +134,18 @@
         </div>
 
         <!-- Developer Profile & Local Environment Footer -->
-        <div class="p-4 border-t border-white/[0.07]">
-            <a href="/settings" class="block rounded-xl bg-[#171A24] hover:bg-[#1C202C] border border-white/[0.06] p-3 transition-colors">
+        <div class="p-4 border-t border-white/[0.07] space-y-2">
+            <a href="/profile" class="block rounded-xl bg-[#171A24] hover:bg-[#1C202C] border border-white/[0.06] p-3 transition-colors">
                 <div class="flex items-center gap-2.5 min-w-0">
-                    <div class="h-8 w-8 rounded-full bg-violet-500/20 text-violet-300 flex items-center justify-center font-bold text-xs flex-shrink-0">
-                        {{ strtoupper(substr(\App\Models\Setting::get('freelancer_name', 'Alex Rivers'), 0, 2)) }}
-                    </div>
+                    @if(auth()->user()?->avatar)
+                        <img src="{{ auth()->user()->avatar }}" class="h-8 w-8 rounded-full flex-shrink-0 object-cover" alt="avatar">
+                    @else
+                        <div class="h-8 w-8 rounded-full bg-violet-500/20 text-violet-300 flex items-center justify-center font-bold text-xs flex-shrink-0">
+                            {{ strtoupper(substr(auth()->user()?->name ?? \App\Models\Setting::get('freelancer_name', 'Alex Rivers'), 0, 2)) }}
+                        </div>
+                    @endif
                     <div class="min-w-0">
-                        <div class="text-xs font-semibold text-white truncate">{{ \App\Models\Setting::get('freelancer_name', 'Alex Rivers') }}</div>
+                        <div class="text-xs font-semibold text-white truncate">{{ auth()->user()?->name ?? \App\Models\Setting::get('freelancer_name', 'Alex Rivers') }}</div>
                         <div class="text-[10px] text-emerald-400 font-mono flex items-center gap-1">
                             <span class="h-1.5 w-1.5 rounded-full bg-emerald-400"></span>
                             <span>{{ \App\Models\Setting::get('currency', 'MYR') }} • Active</span>
@@ -139,6 +153,16 @@
                     </div>
                 </div>
             </a>
+
+            <form method="POST" action="{{ route('logout') }}">
+                @csrf
+                <button type="submit" class="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs text-zinc-500 hover:text-red-400 hover:bg-red-500/5 transition-all">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                    </svg>
+                    Sign out
+                </button>
+            </form>
         </div>
     </aside>
 
