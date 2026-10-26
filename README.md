@@ -1,4 +1,4 @@
-# FreelanceOS ⚡
+# Freelance System⚡
 
 > A distraction-free, solo Freelancer Operating System (FMS) designed for independent developers, designers, and creators. Track live billable hours, manage flexible rate projects, and generate professional PDF invoices seamlessly.
 
